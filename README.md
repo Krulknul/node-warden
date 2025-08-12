@@ -1,6 +1,8 @@
 # NodeWarden
 NodeWarden is a Scrypto blueprint that intends to wrap validator owner badges, such that the node owner can create new badges with only specific privileges enabled: This allows node runners to do certain operations while conforming to the principle of least privilege.
 
+# Warning: this is a work in progress. Use at your own risk
+
 # Terminology
 **Validator Owner Badge**: The NFT that is used to control a validator component
 
