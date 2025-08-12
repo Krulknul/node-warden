@@ -10,7 +10,7 @@ NodeWarden is a Scrypto blueprint that intends to wrap validator owner badges, s
 
 **Access Key Badge**: a badge issued by the person holding the "NodeWarden Owner Badge" to be given to the delegates
 
-**Delegate**: The delegate is the user that the owner of the "NodeWarden Owner Badge" NFT desires to **delegate** the permission of the "NodeWarden Owner Badge" to, so that he can take actions that requires the authority of the "Validator Owner Badge" on behalf of the owner of the "NodeWarden Owner Badge"
+**Delegate**: The delegate is the user that the owner of the "NodeWarden Owner Badge" NFT desires to **delegate** some permissions over the validator component to.
 
 # Delegation Methodology Explained
 By simply creating a component of this access manager blueprint, a "NodeWarden Owner Badge" is given in return, which in turn allows the instantiator to issue and send "Access Key Badges" to selected people, and recall those "Access Key Badges" when/if necessary.
