@@ -1,0 +1,13 @@
+{
+    "name": "Scrypto",
+    "dockerFile": "Dockerfile.base",
+    "customizations": {
+        "vscode": {
+            "settings": {},
+            "extensions": [
+                "rust-lang.rust-analyzer",
+                "tamasfe.even-better-toml"
+            ]
+        }
+    }
+}
