@@ -385,17 +385,26 @@ mod node_warden {
             permission: String,
             allow: bool,
         ) {
+            // Get the current access key data, such that we can
+            // overwrite only the field we are interested in.
             let mut access_key_badge_data = self
                 .access_key_badge_resource_manager
                 .get_non_fungible_data::<AccessKeyBadgeData>(
                     &access_key_badge_local_id,
                 );
-            access_key_badge_data.permissions.update_permission(
-                PermissionType::from_str(&permission)
-                    .expect("Invalid permission type"),
-                allow,
-            );
 
+            // Parse the given permission type string into a PermissionType
+            // This should be safe: if the string does not correspond
+            // to a valid PermissionType, it will just panic.
+            let permission_type = PermissionType::from_str(&permission)
+                .expect("Invalid permission type");
+
+            // MUTABLY update the access key badge data with the new permission.
+            access_key_badge_data
+                .permissions
+                .update_permission(permission_type, allow);
+
+            // Write back the updated access key badge data.
             self.access_key_badge_resource_manager
                 .update_non_fungible_data(
                     &access_key_badge_local_id,
