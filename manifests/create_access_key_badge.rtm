@@ -1,0 +1,42 @@
+# We need a proof of the NodeWarden owner badge in the auth zone
+CALL_METHOD
+    Address("${account_address}")
+    "create_proof_of_non_fungibles"
+    Address("${node_warden_owner_badge_resource_address}")
+    Array<NonFungibleLocalId>(
+        NonFungibleLocalId("{${node_warden_owner_badge_local_id}}")
+    )
+;
+# This method creates a new access badge. Tweak permissions to your liking.
+CALL_METHOD
+    Address("${node_warden_component_address}")
+    "create_access_key_badge"
+    Tuple(
+        # Correspond to the methods of the validator component
+        false, # stake_as_owner
+        false, # register
+        false, # unregister
+        false, # update_key
+        false, # update_fee
+        false, # lock_owner_stake_units
+        false, # start_unlock_owner_stake_units
+        false, # finish_unlock_owner_stake_units
+        false, # update_accept_delegated_stake
+        false, # signal_protocol_update_readiness
+
+        # Some permissions for updating metadata on the validator component
+        false, # set_metadata
+        false, # remove_metadata
+        false, # lock_metadata
+
+        # An extra permission that is quite powerful and can do all of the above
+        false # create_validator_owner_badge_proof
+    );
+# Deposit the access badge into your account. After that, you can send it anywhere.
+CALL_METHOD
+    Address("${account_address}")
+    "deposit_batch"
+    Expression("ENTIRE_WORKTOP");
+
+
+

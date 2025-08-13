@@ -1,0 +1,13 @@
+# Example: Instantiating a new NodeWarden component
+CALL_FUNCTION
+    Address("${package_address}")
+    "NodeWarden"
+    "new"
+    Some(Address("${dapp_definition_address}")) # Or just make it None
+CALL_METHOD
+    Address("${account_address}")
+    "deposit_batch"
+    Expression("ENTIRE_WORKTOP");
+
+
+

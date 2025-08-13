@@ -437,6 +437,95 @@ impl CustomTestEnvironment {
         println!("Transaction Receipt: {:?}", receipt);
         receipt.expect_commit_success();
     }
+
+    fn set_metadata(
+        &mut self,
+        component_address: ComponentAddress,
+        admin_account: &Account,
+        access_key_global_id: NonFungibleGlobalId,
+        name: &str,
+        metadata: MetadataValue,
+    ) {
+        let manifest = ManifestBuilder::new()
+            .lock_fee_from_faucet()
+            .create_proof_from_account_of_non_fungible(
+                admin_account.account_address,
+                access_key_global_id.clone(),
+            )
+            .pop_from_auth_zone("proof")
+            .call_method_with_name_lookup(
+                component_address,
+                "set_metadata",
+                |lookup| {
+                    manifest_args!(
+                        lookup.proof("proof"),
+                        name.to_string(),
+                        metadata
+                    )
+                },
+            )
+            .build();
+
+        let receipt = self.runner.execute_manifest(
+            manifest,
+            vec![NonFungibleGlobalId::from_public_key(
+                &admin_account.public_key,
+            )],
+        );
+
+        println!("Transaction Receipt: {:?}", receipt);
+        receipt.expect_commit_success();
+    }
+
+    fn recall_and_burn_access_key_badge(
+        &mut self,
+        component_address: ComponentAddress,
+        owner_account: &Account,
+        admin_account: &Account,
+        owner_badge_global_id: NonFungibleGlobalId,
+        access_key_global_id: NonFungibleGlobalId,
+    ) {
+        // find the vault address of access_key_global_id
+        let admin_vault: InternalAddress = InternalAddress::try_from_hex(
+            &self.runner.get_component_vaults(
+                admin_account.account_address,
+                access_key_global_id.resource_address(),
+            )[0]
+            .to_hex(),
+        )
+        .unwrap();
+        let manifest = ManifestBuilder::new()
+            .lock_fee_from_faucet()
+            .create_proof_from_account_of_non_fungible(
+                owner_account.account_address,
+                owner_badge_global_id.clone(),
+            )
+            .call_method(
+                component_address,
+                "recall_access_key_badge",
+                manifest_args!(admin_vault, access_key_global_id.local_id()),
+            )
+            .take_all_from_worktop(
+                access_key_global_id.resource_address(),
+                "access_key",
+            )
+            .call_method_with_name_lookup(
+                component_address,
+                "burn_access_key_badge",
+                |lookup| manifest_args!(lookup.bucket("access_key")),
+            )
+            .build();
+
+        let receipt = self.runner.execute_manifest(
+            manifest,
+            vec![NonFungibleGlobalId::from_public_key(
+                &owner_account.public_key,
+            )],
+        );
+
+        println!("Transaction Receipt: {:?}", receipt);
+        receipt.expect_commit_success();
+    }
 }
 
 struct SimpleSetupStuff {
@@ -489,7 +578,7 @@ fn simple_setup(permissions: AccessKeyPermissions) -> SimpleSetupStuff {
 fn create_env() {
     let SimpleSetupStuff {
         mut env,
-        validator_owner,
+        validator_owner: _,
         admin1,
         node_warden_results,
         admin1_access_key,
@@ -605,10 +694,10 @@ fn update_fee_then_withdraw_validator_owner_badge() {
 #[should_panic(
     expected = "Expected success but was failure: Failure(SystemModuleError(AuthError(Unauthorized(Unauthorized { failed_access_rules"
 )]
-fn admin_unsuccessfully_withdraw_validator_owner_badge() {
+fn operator_unsuccessfully_withdraw_validator_owner_badge() {
     let SimpleSetupStuff {
         mut env,
-        validator_owner,
+        validator_owner: _,
         admin1,
         node_warden_results,
         admin1_access_key,
@@ -706,5 +795,133 @@ fn enable_unregister_and_successfully_do_it() {
     assert!(
         validator_info.is_registered,
         "Validator should be registered after registering"
+    );
+}
+
+#[test]
+#[should_panic(
+    expected = "Access key badge does not have permission for: set_metadata"
+)]
+fn unsuccessfully_update_metadata() {
+    let SimpleSetupStuff {
+        mut env,
+        validator_owner: _,
+        admin1,
+        node_warden_results,
+        admin1_access_key,
+        validator_component: _,
+    } = simple_setup(AccessKeyPermissions {
+        set_metadata: false,
+        ..Default::default()
+    });
+
+    let metadata_value =
+        MetadataValue::String("My validator component".to_string());
+    env.set_metadata(
+        node_warden_results.component_address,
+        &admin1,
+        admin1_access_key.clone(),
+        "name",
+        metadata_value.clone(),
+    );
+}
+
+#[test]
+fn update_metadata() {
+    let SimpleSetupStuff {
+        mut env,
+        validator_owner: _,
+        admin1,
+        node_warden_results,
+        admin1_access_key,
+        validator_component,
+    } = simple_setup(AccessKeyPermissions {
+        set_metadata: true,
+        ..Default::default()
+    });
+
+    let metadata_value =
+        MetadataValue::String("My validator component".to_string());
+    env.set_metadata(
+        node_warden_results.component_address,
+        &admin1,
+        admin1_access_key.clone(),
+        "name",
+        metadata_value.clone(),
+    );
+
+    let name = env
+        .runner
+        .get_metadata(validator_component.into(), "name")
+        .unwrap();
+
+    assert_eq!(name, metadata_value);
+}
+
+#[test]
+#[should_panic(expected = "Invalid permission type: VariantNotFound")]
+fn update_non_existent_permission() {
+    let SimpleSetupStuff {
+        mut env,
+        validator_owner,
+        admin1: _,
+        node_warden_results,
+        admin1_access_key,
+        validator_component: _,
+    } = simple_setup(AccessKeyPermissions {
+        update_fee: true,
+        ..Default::default()
+    });
+
+    // Try to update a permission that doesn't exist
+    env.update_access_key_badge_permissions(
+        node_warden_results.component_address,
+        &validator_owner,
+        admin1_access_key.clone(),
+        node_warden_results.owner_badge.clone(),
+        "non_existent_permission",
+        true,
+    );
+}
+
+#[test]
+fn recall_and_burn() {
+    let SimpleSetupStuff {
+        mut env,
+        validator_owner,
+        admin1,
+        node_warden_results,
+        admin1_access_key,
+        validator_component: _,
+    } = simple_setup(AccessKeyPermissions {
+        ..Default::default()
+    });
+
+    let balances = env.runner.get_component_balance(
+        admin1.account_address,
+        admin1_access_key.resource_address(),
+    );
+
+    assert!(
+        balances == Decimal::ONE,
+        "There should be exactly one access key in the admin's account before recalling/burning"
+    );
+
+    env.recall_and_burn_access_key_badge(
+        node_warden_results.component_address,
+        &validator_owner,
+        &admin1,
+        node_warden_results.owner_badge.clone(),
+        admin1_access_key.clone(),
+    );
+
+    let balances = env.runner.get_component_balance(
+        admin1.account_address,
+        admin1_access_key.resource_address(),
+    );
+
+    assert!(
+        balances == Decimal::ZERO,
+        "There should be exactly zero access keys in the admin's account after recalling/burning"
     );
 }

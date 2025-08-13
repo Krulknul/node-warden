@@ -1,0 +1,29 @@
+# We need a proof of the NodeWarden owner badge in the auth zone
+CALL_METHOD
+    Address("${account_address}")
+    "create_proof_of_non_fungibles"
+    Address("${node_warden_owner_badge_resource_address}")
+    Array<NonFungibleLocalId>(
+        NonFungibleLocalId("{${node_warden_owner_badge_local_id}}")
+    )
+;
+# Withdraw the validator owner badge
+CALL_METHOD
+    Address("${account_address}")
+    "withdraw_non_fungibles"
+    Address("${validator_owner_badge_resource_address}")
+    Array<NonFungibleLocalId>(
+        NonFungibleLocalId("[${validator_owner_badge_local_id}]")
+    )
+;
+# Take the validator owner badge from the worktop
+TAKE_ALL_FROM_WORKTOP
+    Address("${validator_owner_badge_resource_address}")
+    Bucket("validator_badge")
+;
+# Deposit the validator owner badge into the component
+CALL_METHOD
+    Address("${node_warden_component_address}")
+    "deposit_validator_owner_badge"
+    Bucket("validator_badge")
+;

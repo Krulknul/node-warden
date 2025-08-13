@@ -6,8 +6,16 @@
             "settings": {},
             "extensions": [
                 "rust-lang.rust-analyzer",
-                "tamasfe.even-better-toml"
+                "tamasfe.even-better-toml",
+                "svelte.svelte-vscode",
+                "RadixPublishing.radix-developer-tools",
+                "bradlc.vscode-tailwindcss"
             ]
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/node": {
+            "version": "20"
         }
     }
 }

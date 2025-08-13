@@ -1,0 +1,28 @@
+# We need a proof of the NodeWarden owner badge in the auth zone
+CALL_METHOD
+    Address("${account_address}")
+    "create_proof_of_non_fungibles"
+    Address("${node_warden_owner_badge_resource_address}")
+    Array<NonFungibleLocalId>(
+        NonFungibleLocalId("{${node_warden_owner_badge_local_id}}")
+    )
+;
+# Deposit the validator owner badge into the component
+CALL_METHOD
+    Address("${node_warden_component_address}")
+    "recall_access_key_badge"
+    Address("${access_key_badge_internal_vault_address}") # The InternalAddress of the vault where the access key badge lives
+    NonFungibleLocalId("{${access_key_badge_local_id}}") # The NonFungibleLocalId of the badge to recall
+;
+# Now, we have the access key badge on the worktop
+TAKE_ALL_FROM_WORKTOP
+    Address("${access_key_badge_resource_address}")
+    Bucket("access_key")
+;
+# Burn the access key badge
+CALL_METHOD
+    Address("${node_warden_component_address}")
+    "burn_access_key_badge"
+    Bucket("access_key")
+;
+

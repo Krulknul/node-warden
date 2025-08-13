@@ -1,0 +1,18 @@
+# We need a proof of the NodeWarden owner badge in the auth zone
+CALL_METHOD
+    Address("${account_address}")
+    "create_proof_of_non_fungibles"
+    Address("${node_warden_owner_badge_resource_address}")
+    Array<NonFungibleLocalId>(
+        NonFungibleLocalId("{${node_warden_owner_badge_local_id}}")
+    )
+;
+# Update a permission for the access key badge with that local id
+# This example sets the "register" permissions to true
+CALL_METHOD
+    Address("${node_warden_component_address}")
+    "update_access_key_badge_permissions"
+    NonFungibleLocalId("{${access_key_badge_local_id}}")
+    "register" # the permission is a string with the same name as the field in the AccessKeyPermissions struct
+    true
+;

@@ -14,6 +14,10 @@ pub enum PermissionType {
     UpdateAcceptDelegatedStake,
     SignalProtocolUpdateReadiness,
 
+    SetMetadata,
+    RemoveMetadata,
+    LockMetadata,
+
     CreateValidatorOwnerBadgeProof,
 }
 
@@ -34,6 +38,11 @@ pub struct AccessKeyPermissions {
     pub update_accept_delegated_stake: bool,
     pub signal_protocol_update_readiness: bool,
 
+    // Some permissions for updating metadata on the validator component
+    pub set_metadata: bool,
+    pub remove_metadata: bool,
+    pub lock_metadata: bool,
+
     // An extra permission that is quite powerful, and can do all of the above
     pub create_validator_owner_badge_proof: bool,
 }
@@ -51,6 +60,9 @@ impl Default for AccessKeyPermissions {
             finish_unlock_owner_stake_units: false,
             update_accept_delegated_stake: false,
             signal_protocol_update_readiness: false,
+            set_metadata: false,
+            remove_metadata: false,
+            lock_metadata: false,
             create_validator_owner_badge_proof: false,
         }
     }
@@ -77,6 +89,9 @@ impl AccessKeyPermissions {
             PermissionType::SignalProtocolUpdateReadiness => {
                 self.signal_protocol_update_readiness
             }
+            PermissionType::SetMetadata => self.set_metadata,
+            PermissionType::RemoveMetadata => self.remove_metadata,
+            PermissionType::LockMetadata => self.lock_metadata,
             PermissionType::CreateValidatorOwnerBadgeProof => {
                 self.create_validator_owner_badge_proof
             }
@@ -109,6 +124,9 @@ impl AccessKeyPermissions {
             PermissionType::SignalProtocolUpdateReadiness => {
                 self.signal_protocol_update_readiness = allow
             }
+            PermissionType::SetMetadata => self.set_metadata = allow,
+            PermissionType::RemoveMetadata => self.remove_metadata = allow,
+            PermissionType::LockMetadata => self.lock_metadata = allow,
             PermissionType::CreateValidatorOwnerBadgeProof => {
                 self.create_validator_owner_badge_proof = allow
             }
@@ -148,8 +166,8 @@ mod node_warden {
             // Administrative methods callable only by the owner
             deposit_validator_owner_badge => restrict_to: [component_owner];
             create_access_key_badge => restrict_to: [component_owner];
-            recall_key_badge => restrict_to: [component_owner];
-            burn_key_badge => restrict_to: [component_owner];
+            recall_access_key_badge => restrict_to: [component_owner];
+            burn_access_key_badge => restrict_to: [component_owner];
             update_access_key_badge_permissions => restrict_to: [component_owner];
             withdraw_validator_owner_badge => restrict_to: [component_owner];
 
@@ -167,7 +185,12 @@ mod node_warden {
             update_accept_delegated_stake => PUBLIC;
             signal_protocol_update_readiness => PUBLIC;
 
-            // Additional method - warning: powerful
+            // Additional method for updating metadata
+            set_metadata => PUBLIC;
+            remove_metadata => PUBLIC;
+            lock_metadata => PUBLIC;
+
+             // Additional method - warning: powerful
             create_validator_owner_badge_proof => PUBLIC;
         }
     }
@@ -340,6 +363,8 @@ mod node_warden {
                     init {
                         "name" => "NodeWarden Component", locked;
                         "description" => "A proxy for managing Radix validator components with more advanced authorization features", locked;
+                        "owner_badge" => node_warden_owner_badge.resource_address(), locked;
+                        "access_key_badge" => access_key_badge_resource_manager.address(), locked;
                     }
                 ))
                 .roles(roles! (
@@ -414,23 +439,23 @@ mod node_warden {
         }
 
         /// Recalls the key badge from the specified vault.
-        pub fn recall_key_badge(
+        pub fn recall_access_key_badge(
             &self,
             vault_address: InternalAddress,
+            id: NonFungibleLocalId,
         ) -> NonFungibleBucket {
-            let recalled_bucket: Bucket =
+            let recalled_bucket: NonFungibleBucket =
                 scrypto_decode(&ScryptoVmV1Api::object_call_direct(
                     vault_address.as_node_id(),
-                    VAULT_RECALL_IDENT,
-                    scrypto_args!(Decimal::ONE),
+                    NON_FUNGIBLE_VAULT_RECALL_NON_FUNGIBLES_IDENT,
+                    scrypto_args!(vec!(id)),
                 ))
                 .unwrap();
-
-            recalled_bucket.as_non_fungible()
+            recalled_bucket
         }
 
         /// Burns the given key badge.
-        pub fn burn_key_badge(&self, key_badge: NonFungibleBucket) {
+        pub fn burn_access_key_badge(&self, key_badge: NonFungibleBucket) {
             key_badge.burn();
         }
 
@@ -673,6 +698,146 @@ mod node_warden {
         // #########################################################
         // ##### Additional methods ################################
         // #########################################################
+
+        /// Set metadata for the validator component
+        ///
+        /// * `proof` - The proof of authorization.
+        /// * `name` - The name of the metadata field.
+        /// * `metadata` - The metadata value to set.
+        ///
+        pub fn set_metadata(
+            &self,
+            proof: NonFungibleProof,
+            name: String,
+            metadata: MetadataValue,
+        ) {
+            self.check_proof(proof, PermissionType::SetMetadata);
+            self.do_with_validator_owner_badge_proof(
+                // We can't seem to get around this good old match...
+                |validator| match metadata {
+                    GenericMetadataValue::String(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::Bool(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::U8(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::U32(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::U64(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::I32(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::I64(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::Decimal(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::GlobalAddress(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::PublicKey(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::NonFungibleGlobalId(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::NonFungibleLocalId(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::Instant(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::Url(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::Origin(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::PublicKeyHash(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::StringArray(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::BoolArray(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::U8Array(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::U32Array(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::U64Array(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::I32Array(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::I64Array(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::DecimalArray(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::GlobalAddressArray(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::PublicKeyArray(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::NonFungibleGlobalIdArray(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::NonFungibleLocalIdArray(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::InstantArray(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::UrlArray(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::OriginArray(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                    GenericMetadataValue::PublicKeyHashArray(val) => {
+                        validator.set_metadata(name, val)
+                    }
+                },
+            );
+        }
+
+        /// Remove metadata from the validator component
+        ///
+        /// * `proof` - The proof of authorization.
+        /// * `name` - The name of the metadata field.
+        ///
+        pub fn remove_metadata(&self, proof: NonFungibleProof, name: String) {
+            self.check_proof(proof, PermissionType::RemoveMetadata);
+            self.do_with_validator_owner_badge_proof(|validator| {
+                validator.remove_metadata(name);
+            });
+        }
+
+        /// Lock a piece of metadata on the validator component
+        ///
+        /// * `proof` - The proof of authorization.
+        /// * `name` - The name of the metadata field.
+        ///
+        pub fn lock_metadata(&self, proof: NonFungibleProof, name: String) {
+            self.check_proof(proof, PermissionType::LockMetadata);
+            self.do_with_validator_owner_badge_proof(|validator| {
+                validator.lock_metadata(name);
+            });
+        }
 
         /// Create a proof of the validator owner badge.
         /// The proof can be used to call any of the validator component's methods.

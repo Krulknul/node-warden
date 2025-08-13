@@ -1,0 +1,20 @@
+# We need a proof of the access key owner badge on the worktop
+# We could also use a proof of the owner badge here!
+CALL_METHOD
+    Address("${account_address}")
+    "create_proof_of_non_fungibles"
+    Address("${access_key_badge_resource_address}")
+    Array<NonFungibleLocalId>(
+        NonFungibleLocalId("{${access_key_badge_local_id}}")
+    )
+;
+# Pop the proof
+POP_FROM_AUTH_ZONE
+    Proof("proof")
+;
+# Call the register method, passing the proof
+CALL_METHOD
+    Address("${node_warden_component_address}")
+    "register"
+    Proof("proof")
+;
