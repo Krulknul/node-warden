@@ -715,100 +715,98 @@ mod node_warden {
             self.do_with_validator_owner_badge_proof(
                 // We can't seem to get around this good old match...
                 |validator| match metadata {
-                    GenericMetadataValue::String(val) => {
+                    MetadataValue::String(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::Bool(val) => {
+                    MetadataValue::Bool(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::U8(val) => {
+                    MetadataValue::U8(val) => validator.set_metadata(name, val),
+                    MetadataValue::U32(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::U32(val) => {
+                    MetadataValue::U64(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::U64(val) => {
+                    MetadataValue::I32(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::I32(val) => {
+                    MetadataValue::I64(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::I64(val) => {
+                    MetadataValue::Decimal(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::Decimal(val) => {
+                    MetadataValue::GlobalAddress(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::GlobalAddress(val) => {
+                    MetadataValue::PublicKey(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::PublicKey(val) => {
+                    MetadataValue::NonFungibleGlobalId(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::NonFungibleGlobalId(val) => {
+                    MetadataValue::NonFungibleLocalId(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::NonFungibleLocalId(val) => {
+                    MetadataValue::Instant(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::Instant(val) => {
+                    MetadataValue::Url(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::Url(val) => {
+                    MetadataValue::Origin(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::Origin(val) => {
+                    MetadataValue::PublicKeyHash(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::PublicKeyHash(val) => {
+                    MetadataValue::StringArray(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::StringArray(val) => {
+                    MetadataValue::BoolArray(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::BoolArray(val) => {
+                    MetadataValue::U8Array(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::U8Array(val) => {
+                    MetadataValue::U32Array(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::U32Array(val) => {
+                    MetadataValue::U64Array(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::U64Array(val) => {
+                    MetadataValue::I32Array(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::I32Array(val) => {
+                    MetadataValue::I64Array(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::I64Array(val) => {
+                    MetadataValue::DecimalArray(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::DecimalArray(val) => {
+                    MetadataValue::GlobalAddressArray(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::GlobalAddressArray(val) => {
+                    MetadataValue::PublicKeyArray(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::PublicKeyArray(val) => {
+                    MetadataValue::NonFungibleGlobalIdArray(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::NonFungibleGlobalIdArray(val) => {
+                    MetadataValue::NonFungibleLocalIdArray(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::NonFungibleLocalIdArray(val) => {
+                    MetadataValue::InstantArray(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::InstantArray(val) => {
+                    MetadataValue::UrlArray(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::UrlArray(val) => {
+                    MetadataValue::OriginArray(val) => {
                         validator.set_metadata(name, val)
                     }
-                    GenericMetadataValue::OriginArray(val) => {
-                        validator.set_metadata(name, val)
-                    }
-                    GenericMetadataValue::PublicKeyHashArray(val) => {
+                    MetadataValue::PublicKeyHashArray(val) => {
                         validator.set_metadata(name, val)
                     }
                 },
