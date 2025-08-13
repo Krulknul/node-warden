@@ -242,7 +242,7 @@ mod node_warden {
                     init {
                         "node_warden_component_address" => component_address, locked;
                         "name" => "NodeWarden Owner Badge", locked;
-                        "description" => "NodeWarden Owner badge belongs to the owner of the auth badge which this NodeWarden component is managing", locked;
+                        "description" => "the NodeWarden Owner badge allows the owner of a Radix validator to manage the associated NodeWarden component which manages it", locked;
                         "tags" => vec!["Badge", "Access Control", "Owner Badge", "Validator"], locked;
                     }
                 ))
@@ -301,7 +301,7 @@ mod node_warden {
                     init {
                         "node_warden_component_address" => component_address, locked;
                         "name" => "NodeWarden Access Key Badge", locked;
-                        "description" => "NodeWarden Access Key badge is the badge used to create proof for the auth badge that the NodeWarden component is managing", locked;
+                        "description" => "NodeWarden Access Key badge is used by Radix node operators to control the validator component with granular permissions", locked;
                         "tags" => vec!["Badge", "Access Control", "Key Badge"], locked;
                     }
                 ))
@@ -843,7 +843,7 @@ mod node_warden {
         /// # Warning
         /// By enabling the permission for this method, you allow the caller to create a proof of the validator owner badge.
         /// This essentially gives the caller the ability to perform any action that requires the validator owner badge, including
-        /// things like changing fees and withdrawing LSU from the validator's vault.
+        /// things like changing fees and withdrawing stake units from the validator's vault.
         pub fn create_validator_owner_badge_proof(
             &self,
             proof: NonFungibleProof,
@@ -891,7 +891,7 @@ mod node_warden {
         ///
         /// # Panics
         ///
-        /// Will panic if the proof is not valid for t`he given permission type.
+        /// Will panic if the proof is not valid for the given permission type.
         /// This happens if:
         /// - The proof is not from the owner badge or the access key badge.
         /// - The access key badge does not have the required permission.
