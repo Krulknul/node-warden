@@ -29,3 +29,4 @@ The usage flow can be described in this way:
 5. (optional) The owner can revoke and/or destroy access key badges from delegates using the `recall_access_key_badge` and `burn_access_key_badge` methods.
 6. When the owner of the NodeWarden component wants to retire the component, they can simply withdraw the validator owner badge using the `withdraw_validator_owner_badge` method. After withdrawing the badge, the component will be essentially disabled and it can no longer control the validator component.
 
+Note: I haven't provided RTM examples for all the possible methods on the validator component, but if you can call one, you can easily call the others. The only difference with calling the validator component directly is that you have to produce the proof and pass it along with the other parameters.
